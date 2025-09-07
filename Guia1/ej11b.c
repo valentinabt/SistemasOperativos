@@ -35,16 +35,16 @@ void bsend(pid_t pid_dst,int msg){
 int breceive(pid_t pid_src){
 
     int msg;
-    if(pid_src == pid_padre){
+    if(pid_src == pid_hijo2){
         
         read(pipe1[hijo2_toPadre][READ],&msg,sizeof(msg));
         
     }
-    if(pid_src == pid_hijo1){
+    if(pid_src == pid_padre){
         read(pipe1[padre_tohijo1][READ],&msg,sizeof(msg));
     }
 
-    if(pid_src == pid_hijo2){
+    if(pid_src == pid_hijo1){
         read(pipe1[hijo1_tohijo2][READ],&msg,sizeof(msg));
     }
 
@@ -61,12 +61,12 @@ void rutina_del_hijo1(){
     close(pipe1[hijo2_toPadre][WRITE]);
 
     int k = 0;
-    while(k < 51){
+    while(k+1 < 50){
         
-        k = breceive(pid_hijo1);
+        k = breceive(pid_padre);
         printf("soy el hijo 1 y recibi %d \n",k);
         bsend(pid_hijo2,k+1);
-        printf("soy el hijo 1 y le envie al hijo 2 %d \n",k);
+        printf("soy el hijo 1 y le envie al hijo 2 %d \n",k+1);
         
         k++;
         }
@@ -85,14 +85,14 @@ void rutina_del_hijo2(){
     close(pipe1[hijo2_toPadre][READ]);
 
     int k = 0;
-    while(k < 51){
+    while(k+1 < 50){
         
-        k = breceive(pid_hijo2) ;
+        k = breceive(pid_hijo1) ;
         printf("soy el hijo 2 y recibi %d \n",k);
         
         bsend(pid_padre,k+1);
-        
-        printf("soy el hijo 2 y le envie al hijo 1 %d \n",k+1);
+
+        printf("soy el hijo 2 y le envie a padre  %d \n",k+1);
         
         k++;
         }
@@ -120,13 +120,6 @@ int main(int argc, char const* argv[]){
        rutina_del_hijo1();
 
     }
-
-    // cierro el primer pipe del padre del lado de read
-    close(pipe1[padre_tohijo1][READ]);
-    //cierro el pipe del hijo 1 al hijo 2
-    close(pipe1[hijo1_tohijo2][WRITE]);
-    close(pipe1[hijo1_tohijo2][READ]);
-    
     
     //-----------------
 
@@ -137,21 +130,30 @@ int main(int argc, char const* argv[]){
        rutina_del_hijo2();
 
     }
-    //cierro el segundo pipe del padre del lado de write
-    close(pipe1[hijo2_toPadre][WRITE]);
+   
     
     
     if(pid_hijo1!= -1 && pid_hijo1 != 0 && pid_hijo2!= -1 && pid_hijo2 != 0){
       
        
+    // cierro el primer pipe del padre del lado de read
+    close(pipe1[padre_tohijo1][READ]);
+    //cierro el pipe del hijo 1 al hijo 2
+    close(pipe1[hijo1_tohijo2][WRITE]);
+    close(pipe1[hijo1_tohijo2][READ]);
+
+     //cierro el segundo pipe del padre del lado de write
+    close(pipe1[hijo2_toPadre][WRITE]);
+    
         int i = 0;
         int j;
         while(i < 50 ){
-         printf("le envie a mi hijo1 %d \n",i);
+         
         bsend(pid_hijo1,i);
-        j = breceive(pid_padre);
+        printf("le envie a mi hijo1 %d \n",i);
+        j = breceive(pid_hijo2);
         printf("recibi de hijo 2 el %d \n",j);
-        i = i + 2;
+        i = j+1;
         }
 
     
